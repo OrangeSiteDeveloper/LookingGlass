@@ -1,87 +1,106 @@
 <?php
-/**
- * LookingGlass - User friendly PHP Looking Glass
+/*
+ * Copyright (C) 2023 jellybean13
+ * 
+ * Modification based on code covered by the mentioned copyright
+ * and/or permission notice(s).
+ */
+
+/*
+ * Copyright (C) 2015 Nick Adams <nick@iamtelephone.com>
  *
- * @package     LookingGlass
- * @author      Nick Adams <nick@iamtelephone.com>
- * @copyright   2015 Nick Adams.
- * @link        http://iamtelephone.com
- * @license     http://opensource.org/licenses/MIT MIT License
- * @version     1.3.0
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished
+ * to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
 namespace Telephone\LookingGlass;
 
-/**
- * Implement rate limiting of network commands
+/*
+ * Implement rate limiting of network commands.
  */
-class RateLimit
-{
+class RateLimit {
     /**
-     * Check rate limit against SQLite database
+     * Check rate limit against SQLite database.
      *
      * @param  integer $limit
-     *   Number of commands per hour
+     *   The maximum number of command that is allowed to be executed in one hour per IP address.
+     * @param  string $clientIPAddress
+     *   The IP address of the client.
      * @return boolean
-     *   True on success
+     *   True on success.
      */
-    public function rateLimit($limit)
-    {
-        // check if rate limit is disabled
+    public function rateLimit($limit, $clientIPAddress) {
+        // Check if rate limit feature is disabled.
         if ($limit === 0) {
             return false;
         }
 
-        /**
-         * check for DB file
-         * if nonexistent, no rate limit is applied
+        /*
+         * check for database file.
+         * if nonexistent, no rate limit is applied.
          */
         if (!file_exists('LookingGlass/ratelimit.db')) {
             return false;
         }
 
-        // connect to DB
+        // Connect to database.
         try {
             $dbh = new \PDO('sqlite:LookingGlass/ratelimit.db');
         } catch (PDOException $e) {
             exit($e->getMessage());
         }
 
-        // check for IP
+        // Check for client IP address.
         $q = $dbh->prepare('SELECT * FROM RateLimit WHERE ip = ?');
-        $q->execute(array($_SERVER['REMOTE_ADDR']));
+        $q->execute(array($clientIPAddress));
         $row = $q->fetch(\PDO::FETCH_ASSOC);
 
-        // save time by declaring time()
+        // Save time by declaring time().
         $time = time();
 
-        // if IP does not exist
+        // If the client IP address does not exist.
         if (!isset($row['ip'])) {
-            // create new record
+            // Create a new record.
             $q = $dbh->prepare('INSERT INTO RateLimit (ip, hits, accessed) VALUES (?, ?, ?)');
-            $q->execute(array($_SERVER['REMOTE_ADDR'], 1, $time));
+            $q->execute(array($clientIPAddress, 1, $time));
             return true;
         }
 
-        // typecast SQLite results
+        // Typecast SQLite results.
         $accessed = (int) $row['accessed'] + 3600;
         $hits = (int) $row['hits'];
 
-        // apply rate limit
+        // Apply rate limit settings.
         if ($accessed > $time) {
             if ($hits >= $limit) {
                 $reset = (int) (($accessed - $time) / 60);
                 if ($reset <= 1) {
-                    exit('Rate limit exceeded. Try again in: 1 minute');
+                    exit('Rate limit exceeded. Please try again in 1 minute.');
+                } else {
+                    exit('Rate limit exceeded. Please try again in ' . $reset . ' minutes.');
                 }
-                exit('Rate limit exceeded. Try again in: ' . $reset . ' minutes');
             }
-            // update hits
+            // Update hits.
             $q = $dbh->prepare('UPDATE RateLimit SET hits = ? WHERE ip = ?');
-            $q->execute(array(($hits + 1), $_SERVER['REMOTE_ADDR']));
+            $q->execute(array(($hits + 1), $clientIPAddress));
         } else {
-            // reset hits + accessed time
+            // Reset hits & accessed time.
             $q = $dbh->prepare('UPDATE RateLimit SET hits = ?, accessed = ? WHERE ip = ?');
-            $q->execute(array(1, time(), $_SERVER['REMOTE_ADDR']));
+            $q->execute(array(1, time(), $clientIPAddress));
         }
 
         $dbh = null;

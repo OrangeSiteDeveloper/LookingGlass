@@ -2,66 +2,59 @@
 
 ## Overview
 
-LookingGlass is a user-friendly PHP based looking glass that allows the public (via a web interface) to execute network
-commands on behalf of your server.
+This project is based on [Nick's LookingGlass](https://github.com/telephone/LookingGlass).
 
-Current version: v1.3.0
+LookingGlass, a user-friendly PHP based graphical tool that allows everyone to view the information of the target server and execute network testing commands with options via a web interface.
 
-It's recommended that everyone updates their existing install!
+Current version: 1.0.0 (1).
 
-## Features
+It's recommended that everyone updates their existing installations.
 
-* Automated install via bash script
-* IPv4 & IPv6 support
-* Live output via long polling
-* Multiple themes
-* Rate limiting of network commands
+## What's working
+
+* The following commands with their options: dig, host, mtr, nslookup, ping, traceroute (except TCP traceroute).
+* Basic server info, client info and network info.
+* IP address based rate limit feature.
+* Multi-language support.
+* Multiple color modes support.
+
+## What's not working
+
+* The following commands with their options:
+
+    mtr (tracing a longer network path via command mtr will encounter the gateway time-out issue).
+
+    traceroute (TCP traceroute only. TCP traceroute requires root privileges to execute).
+
+* Multi-theme support (incompatible with some themes from [Bootswatch](https://bootswatch.com)).
 
 ## Implemented commands
 
+* dig
 * host
 * mtr
-* mtr6 (IPv6)
+* nslookup
 * ping
-* ping6 (IPv6)
 * traceroute
-* traceroute6 (IPv6)
 
-__IPv6 commands will only work if your server has external IPv6 setup (or tunneled)__
+__Supported options are varied from other options and the kind of the relevant command.__
 
 ## Requirements
 
-* PHP >= 5.3
-* PHP PDO with SQLite driver (required for rate-limit)
-* SSH/Terminal access (able to install commands/functions if non-existent)
+* PHP >= 8.1.
+* PHP PDO with SQLite driver (required for rate-limit feature).
+* SSH/Terminal access.
 
-## Install
+## Installation
 
-1. Download [LookingGlass](https://github.com/telephone/LookingGlass/archive/v1.3.0.tar.gz) to the intended
-folder within your web directory
-2. Extract archive:
-    - Option #1 - Extract archive to the current directory:
-        - `tar -zxvf LookingGlass-1.3.0.tar.gz --strip-components 1`
-    - Option #2 - Extract archive to a directory named `LookingGlass`:
-        - `tar -zxvf LookingGlass-1.3.0.tar.gz --transform 's!^[^/]\+\($\|/\)!LookingGlass\1!'`
+1. Install all required dependencies. All of them in Linux Ubuntu 22.04 LTS are `php-bcmath`, `php-fpm`, `php-sqlite3`, `sqlite3`, `traceroute`.
+2. Clone this project to the intended folder within your web directory.
 3. Navigate to the `LookingGlass` subdirectory in terminal
-4. Run `bash configure.sh`
-5. Follow the instructions and `configure.sh` will take care of the rest
+4. Edit the editable environment variables in `configure.sh` so as to make it adjust to your networking environments. All editable environment variables can be found below.
+5. Run `sh configure.sh` to configure your environment.
+6. The `configure.sh` will take care of the rest.
 
-_Forgot a setting? Simply run the `configure.sh` script again_
-
-## Updating
-
-1. Download [LookingGlass](https://github.com/telephone/LookingGlass/archive/v1.3.0.tar.gz) to the folder containing
-your existing install
-2. Extract archive: `tar -zxvf LookingGlass-1.3.0.tar.gz --overwrite --strip-components 1`
-    - This will overwrite/update existing files
-3. Navigate to the `LookingGlass` subdirectory in terminal
-4. Run `bash configure.sh`
-5. Follow the instructions and `configure.sh` will take care of the rest
-    - Note: Re-enter test files to create random test files from `GNU shred`
-
-_Forgot a setting? Simply run the `configure.sh` script again_
+_Missing variables? Simply run the `configure.sh` script again._
 
 ## Apache
 
@@ -71,7 +64,7 @@ Ensure `AllowOverride` is on for .htaccess to take effect.
 Output buffering __should__ work by default.
 
 For an HTTPS setup, please visit:
-- [Mozilla SSL Configuration Generator](https://mozilla.github.io/server-side-tls/ssl-config-generator/)
+- [Mozilla SSL Configuration Generator](https://ssl-config.mozilla.org)
 
 ## Nginx
 
@@ -81,12 +74,56 @@ To enable output buffering, and disable gzip on test files please refer to the p
 
 The provided config is setup for LookingGlass to be on a subdomain/domain root.
 
-For an HTTPS setup please visit:
-- [Best nginx configuration for security](http://tautt.com/best-nginx-configuration-for-security/)
-- [Mozilla SSL Configuration Generator](https://mozilla.github.io/server-side-tls/ssl-config-generator/)
+For an HTTPS setup, please visit:
+- [Mozilla SSL Configuration Generator](https://ssl-config.mozilla.org)
+
+## Editable environment variables
+
+[configure.sh](LookingGlass/configure.sh)
+
+```sh
+# The maximum number of command that is allowed to be executed in one hour per IP address.
+# Default: "0" (Disabled).
+CONFIG_RATE_LIMIT="0"
+# The location of your server.
+# Default: (Not defined).
+CONFIG_SERVER_LOCATION="Local Virtualization Node #1"
+# The site name of your server.
+# Default: (Not defined).
+CONFIG_SITE_NAME="LookingGlass Demo #1"
+# The site URL of your server.
+# Default: (Not defined).
+CONFIG_SITE_URL="https://example.com"
+# The test file(s) in your server.
+# If you want to generate more than one test files, you need to use " " to split them.
+# Default: (Not defined).
+CONFIG_TEST_FILES="100MB 1GB 5GB"
+# An IPv4 address for testing.
+# Default: (Not defined).
+CONFIG_TEST_IPv4_ADDRESS="192.168.0.1"
+# An IPv6 address for testing.
+# Default: (Not defined).
+CONFIG_TEST_IPv6_ADDRESS="2001:db8::192:168:0:1"
+# The default theme of current website.
+# Available values: "bootstrap", "cerulean", "cosmo", "cyborg", "darkly", "flatly",
+#                   "journal", "litera", "lumen", "lux", "materia", "minty", "morph",
+#                   "pulse", "quartz", "sandstone", "simplex", "sketchy", "slate",
+#                   "solar", "spacelab", "superhero", "united", "vapor", "yeti", "zephyr".
+# Default: "cerulean".
+# Bugs: Incompatible with some themes from Bootswatch.
+CONFIG_THEME="cerulean"
+# The name of HTTP header that will be used to get the IP address of client.
+# Available values: "HTTP_CF_CONNECTING_IP", "HTTP_X_FORWARDED_FOR", "REMOTE_ADDR".
+# Default: "REMOTE_ADDR".
+CONFIG_HTTP_HEADER_NAME_GET_CLIENT_IP_ADDRESS="REMOTE_ADDR"
+# The owner user of this website (for file permissions).
+# Default: "www-data".
+CONFIG_WEBSITE_OWNER_USER="www-data"
+# The owner group of this website (for file permissions).
+# Default: "www-data".
+CONFIG_WEBSITE_OWNER_GROUP="www-data"
+```
 
 ## License
 
 Code is licensed under MIT Public License.
-
-* If you wish to support my efforts, keep the "Powered by LookingGlass" link intact.
