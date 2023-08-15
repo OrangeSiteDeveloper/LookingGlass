@@ -82,7 +82,7 @@ $renderTime = floor((microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"]) * 1000);
 
     <!-- Styles -->
     <link href="assets/css/style.css" rel="stylesheet">
-    <link href="assets/css/<?php echo $theme; ?>.min.css" rel="stylesheet">
+    <link href="assets/css/<?php echo $theme; ?>/bootstrap.min.css" rel="stylesheet">
     <link href="assets/css/bootstrap-icons.min.css" rel="stylesheet">
 
     <!-- JavaScript -->
