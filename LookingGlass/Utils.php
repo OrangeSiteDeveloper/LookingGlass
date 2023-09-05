@@ -153,28 +153,21 @@ class Utils {
         if (count($parts) != 2) {
             return false;
         }
-
         $ip = $parts[0];
         $netmask = $parts[1];
-
         if (!preg_match("/^\d+$/", $netmask)) {
             return false;
         }
-
         $netmask = intval($parts[1]);
-
         if ($netmask < 0) {
             return false;
         }
-
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             return $netmask <= 32;
         }
-
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
             return $netmask <= 128;
         }
-
         return false;
     }
 
@@ -315,7 +308,7 @@ class Utils {
         // PrevTotal = PrevIdle + PrevNonIdle
         // Total = Idle + NonIdle
 
-        # Differentiate: actual value minus the previous one
+        // Differentiate: Actual value minus the previous one.
         // totald = Total - PrevTotal
         // idled = Idle - PrevIdle
 
@@ -349,15 +342,15 @@ class Utils {
         $currentSteal = $output[8];
         $currentNonIdle = 0;
         $currentTotal = 0;
-
+        // Reckon required parameters.
         $previousNonIdle = bcadd(bcadd(bcadd(bcadd(bcadd($previousUser, $previousNice), $previousSystem), $previousIRQ), $previousSoftIRQ), $previousSteal);
         $currentNonIdle = bcadd(bcadd(bcadd(bcadd(bcadd($currentUser, $currentNice), $currentSystem), $currentIRQ), $currentSoftIRQ), $currentSteal);
         $previousTotal = bcadd(bcadd($previousIdle, $previousIOWait), $previousNonIdle);
         $currentTotal = bcadd(bcadd($currentIdle, $currentIOWait), $currentNonIdle);
         $diffTotal = bcsub($currentTotal, $previousTotal);
         $diffIdle = bcsub(bcadd($currentIdle, $currentIOWait), bcadd($previousIdle, $previousIOWait));
+        // Obtain the result.
         $processorUtilizationPercentage = self::round_bcdiv(bcmul(100, bcsub($diffTotal, $diffIdle)), $diffTotal, 2);
-
         return ["processor_utilization_percentage" => sprintf("%.2f", $processorUtilizationPercentage)];
     }
 
@@ -565,7 +558,6 @@ class Utils {
             $divisionCount++;
         }
         $interfaceTxMetric = self::getDividedMetricResult(0, $divisionCount) . '/s';
-
         return ["interface_rx_rate" => $interfaceRx, "interface_rx_rate_metric" => $interfaceRxMetric,
                 "interface_tx_rate" => $interfaceTx, "interface_tx_rate_metric" => $interfaceTxMetric];
     }
@@ -582,7 +574,6 @@ class Utils {
         if (self::isEmptyString($preferredLocale) === false && in_array($preferredLocale, self::$supportedLanguage)) {
             return strtolower($preferredLocale);
         }
-
         $userLocales = array_reduce(explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']),
             function ($res, $el) {
                 list($l, $q) = array_merge(explode(';q=', $el), [1]);
@@ -615,12 +606,12 @@ class Utils {
     // }
 
     /*
-     * Obtain the client IP address.
+     * Obtain the IP address of client.
      *
      * @param  string $httpHeaderName
      *   The name of HTTP header that will be used to get the IP address of client.
      * @return string
-     *   The client ip address if success.
+     *   The IP address of client.
      */
     public static function getClientIPAddress($httpHeaderName) {
         if (!empty($_SERVER[$httpHeaderName])) {
@@ -628,6 +619,52 @@ class Utils {
         } else {
             return $_SERVER['REMOTE_ADDR'];
         }
+    }
+
+    /*
+     * Obtain the port of client.
+     *
+     * @param  string $httpHeaderName
+     *   The name of HTTP header that will be used to get the port of client.
+     * @return string
+     *   The port of client.
+     */
+    public static function getClientPort($httpHeaderName) {
+        if (!empty($_SERVER[$httpHeaderName])) {
+            return $_SERVER[$httpHeaderName];
+        } else {
+            return $_SERVER['REMOTE_PORT'];
+        }
+    }
+
+    /*
+     * Obtain the visit scheme of client.
+     *
+     * @return string
+     *   The visit scheme of client.
+     */
+    public static function getClientVisitScheme() {
+        return (self::isHttpsVisitScheme() === true) ? 'https' : 'http';
+    }
+
+    /*
+     * Validates whether the visit scheme of client is HTTPS.
+     *
+     * @return boolean
+     *   The result.
+     */
+    public static function isHttpsVisitScheme() {
+        if (self::isEmptyString($_SERVER['REQUEST_SCHEME']) === false && $_SERVER['REQUEST_SCHEME'] == 'https') {
+            return true;
+        } else if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
+            return true;
+        } else if (self::isEmptyString($_SERVER['HTTP_X_FORWARDED_PROTO']) === false &&
+                   $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' ||
+                   self::isEmptyString($_SERVER['HTTP_X_FORWARDED_SSL']) === false &&
+                   $_SERVER['HTTP_X_FORWARDED_SSL'] == 'on') {
+            return true;
+        }
+        return false;
     }
 
     /*

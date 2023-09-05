@@ -42,7 +42,7 @@ if ($lang !== "en-us") {
 // Lazy config check/load.
 if (file_exists('LookingGlass/Config.php')) {
     require 'LookingGlass/Config.php';
-    if (!isset($testIPv4Address, $testIPv6Address, $siteName, $siteUrl, $serverLocation, $testFiles, $theme, $httpHeaderNameGetClientIPAddress)) {
+    if (!isset($testIPv4Address, $testIPv6Address, $siteName, $siteUrl, $serverLocation, $testFiles, $theme, $httpHeaderNameGetClientIPAddress, $httpHeaderNameGetClientPort)) {
         exit($s['index_error_configuration_variables_missing']);
     }
 } else {
@@ -136,7 +136,7 @@ $renderTime = floor((microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"]) * 1000);
               <div class="vr d-none d-lg-flex h-100 mx-lg-2 text-white"></div>
               <hr class="d-lg-none my-2 text-white-50">
             </li>
-            <li class="nav-item dropdown" data-bs-theme="light">
+            <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><?php echo '<i class="bi bi-translate"></i>' . '<span class="ms-2">' . $s['index_language'] . '</span>'; ?></a>
               <div class="dropdown-menu">
                 <a class="dropdown-item d-flex align-items-center" data-bs-language-value="auto" href="/">
@@ -150,7 +150,7 @@ $renderTime = floor((microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"]) * 1000);
                 </a>
               </div>
             </li>
-            <li class="nav-item dropdown" data-bs-theme="light">
+            <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><?php echo '<i class="bi bi-circle-half"></i>' . '<span class="ms-2">' . $s['index_color_mode'] . '</span>'; ?></a>
               <div class="dropdown-menu">
                 <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="auto" aria-pressed="false">
@@ -255,6 +255,24 @@ $renderTime = floor((microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"]) * 1000);
           <div class="card-body">
             <h4 class="card-title text-primary"><?php echo $s['index_client_info']; ?></h4>
             <hr>
+            <p class="card-text" style="display:inline"><?php echo $s['index_client_requested_hostname']; ?>: 
+              <?php
+                  if (Telephone\Utils::isEmptyString($_SERVER['SERVER_NAME']) === false) {
+                      echo '<p id="client_requested_hostname" class="card-text" style="display: inline">' . $_SERVER['SERVER_NAME'] . '</p>';
+                  } else {
+                      echo '<p id="client_requested_hostname" class="card-text" style="display: inline">' . $_SERVER['SERVER_ADDR'] . '</p>';
+                      if (filter_var($_SERVER['SERVER_ADDR'], FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
+                          echo '&nbsp;&nbsp;';
+                          echo '<a href="' . 'https://bgp.he.net/ip/' . $_SERVER['SERVER_ADDR'] . '" target="_blank">[' . $s['index_details'] . ']</a>';
+                      }
+                  }
+              ?>
+            </p>
+            <p class="card-text" style="display:inline"><?php echo $s['index_client_requested_port']; ?>: 
+              <?php
+                  echo '<p id="client_requested_port" class="card-text" style="display: inline">' . $_SERVER['SERVER_PORT'] . '</p>';
+              ?>
+            </p>
             <p class="card-text" style="display:inline"><?php echo $s['index_client_ip_address']; ?>: 
               <?php
                   $clientIPAddress = Telephone\Utils::getClientIPAddress($httpHeaderNameGetClientIPAddress);
@@ -267,9 +285,39 @@ $renderTime = floor((microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"]) * 1000);
                   echo '<a id="client_ip_address_test" href="#tests">[' . $s['index_test'] . ']</a>';
               ?>
             </p>
+            <p class="card-text" style="display:inline"><?php echo $s['index_client_port']; ?>: 
+              <?php
+                  $clientPort = Telephone\Utils::getClientPort($httpHeaderNameGetClientPort);
+                  echo '<p id="client_port" class="card-text" style="display: inline">' . $clientPort . '</p>';
+              ?>
+            </p>
+            <p class="card-text" style="display:inline"><?php echo $s['index_client_visit_timestamps']; ?>: 
+              <?php
+                  echo '<p id="client_visit_timestamps" class="card-text" style="display: inline">' . $_SERVER['REQUEST_TIME_FLOAT'] . '</p>';
+              ?>
+            </p>
+            <p class="card-text" style="display:inline"><?php echo $s['index_client_visit_scheme']; ?>: 
+              <?php
+                  echo '<p id="client_visit_scheme" class="card-text" style="display: inline">' . Telephone\Utils::getClientVisitScheme() . '</p>';
+              ?>
+            </p>
             <p class="card-text" style="display:inline"><?php echo $s['index_client_user_agent']; ?>: 
               <?php
                   echo '<p id="client_user_agent" class="card-text" style="display: inline">' . $_SERVER['HTTP_USER_AGENT'] . '</p>';
+              ?>
+            </p>
+            <p class="card-text" style="display:inline"><?php echo $s['index_client_requested_http_version']; ?>: 
+              <?php
+                  echo '<p id="client_requested_http_version" class="card-text" style="display: inline">' . $_SERVER['SERVER_PROTOCOL'] . '</p>';
+              ?>
+            </p>
+            <p class="card-text" style="display:inline"><?php echo $s['index_client_requested_tls_version']; ?>: 
+              <?php
+                  if (Telephone\Utils::isEmptyString($_SERVER['SSL_PROTOCOL']) === false) {
+                      echo '<p id="client_requested_tls_version" class="card-text" style="display: inline">' . $_SERVER['SSL_PROTOCOL'] . '</p>';
+                  } else {
+                      echo '<p id="client_requested_tls_version" class="card-text" style="display: inline">' . $s['not_available'] . '</p>';
+                  }
               ?>
             </p>
             <p class="card-text" style="display:inline"><?php echo $s['index_client_language_preference']; ?>: 
@@ -1009,7 +1057,7 @@ $renderTime = floor((microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"]) * 1000);
     </div>
 
     <!-- JavaScript -->
-    <script src="assets/js/jquery-3.7.0.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/LookingGlass.js"></script>
   </body>

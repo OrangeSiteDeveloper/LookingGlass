@@ -70,6 +70,10 @@ CONFIG_THEME="cerulean"
 # Available values: "HTTP_CF_CONNECTING_IP", "HTTP_X_FORWARDED_FOR", "REMOTE_ADDR".
 # Default: "REMOTE_ADDR".
 CONFIG_HTTP_HEADER_NAME_GET_CLIENT_IP_ADDRESS="REMOTE_ADDR"
+# The name of HTTP header that will be used to get the port of client.
+# Available values: "HTTP_X_FORWARDED_PORT", "REMOTE_PORT".
+# Default: "REMOTE_PORT".
+CONFIG_HTTP_HEADER_NAME_GET_CLIENT_PORT="REMOTE_PORT"
 # The owner user of this website (for file permissions).
 # Default: "www-data".
 CONFIG_WEBSITE_OWNER_USER="www-data"
@@ -133,6 +137,8 @@ writeConfig() {
 \$theme = '${CONFIG_THEME}';
 // The name of HTTP header that will be used to get the IP address of client.
 \$httpHeaderNameGetClientIPAddress = '${CONFIG_HTTP_HEADER_NAME_GET_CLIENT_IP_ADDRESS}';
+// The name of HTTP header that will be used to get the port of client.
+\$httpHeaderNameGetClientPort = '${CONFIG_HTTP_HEADER_NAME_GET_CLIENT_PORT}';
 // The test file(s) in your server.
 \$testFiles = array();
 EOF
