@@ -322,7 +322,11 @@ $renderTime = floor((microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"]) * 1000);
             </p>
             <p class="card-text" style="display:inline"><?php echo $s['index_client_language_preference']; ?>: 
               <?php
-                  echo '<p id="client_language_preference" class="card-text" style="display: inline">' . $_SERVER['HTTP_ACCEPT_LANGUAGE'] . '</p>';
+                  if (Telephone\Utils::isEmptyString($_SERVER['HTTP_ACCEPT_LANGUAGE']) === false) {
+                      echo '<p id="client_language_preference" class="card-text" style="display: inline">' . $_SERVER['HTTP_ACCEPT_LANGUAGE'] . '</p>';
+                  } else {
+                      echo '<p id="client_language_preference" class="card-text" style="display: inline">' . $s['not_available'] . '</p>';
+                  }
               ?>
             </p>
           </div>

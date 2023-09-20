@@ -53,4 +53,5 @@ function updateColorModeSettings(colorMode) {
     }
 }
 
+// Set the color mode if it is available.
 setColorMode(localStorage.getItem('colorMode'));

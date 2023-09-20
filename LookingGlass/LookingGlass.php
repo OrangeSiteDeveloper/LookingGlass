@@ -93,7 +93,7 @@ class LookingGlass {
             case "doh":
                 $extraArguments .= " ";
                 $extraArguments .= "+https";
-                // sanitize + remove single quotes
+                // Sanitize & Remove single quotes.
                 $dnsLookupQueryUri = str_replace('\'', '', filter_var($dnsLookupQueryUri, FILTER_SANITIZE_URL));
                 if (Utils::isEmptyString($dnsLookupQueryUri) === false) {
                     $extraArguments .= "=";
